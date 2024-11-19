@@ -65,8 +65,8 @@ class PositionalEmbeddings(nn.Module):
         # the dimensions of the word embedding. Remember the dimensions are: [batch, pos_embedings, dimension]
         # We take dim 1 (pos_embeddings) and align them with the dim 1 of x (the 
         # actual word embeddings). We also make sure to make the positional
-        # embeddings static (.requires_grad).
-        x = x + (self.pe[:, :x.shape[1], :]).requires_grad(False)
+        # usa .detach() para evitar que los embeddings posicionales calculados tengan gradientes:
+        x = x + self.pe[:, :x.shape[1], :].detach()
         return self.dropout(x)
 
 
