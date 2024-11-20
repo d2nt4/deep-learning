@@ -40,10 +40,13 @@ Antes de ejecutar este proyecto, asegúrate de tener instalados los siguientes p
 ## Estructura del Proyecto
 El proyecto está organizado de la siguiente manera:
   ```bash
- .
- ├── el_quijote.txt        # Archivo de texto descargado automáticamente (dataset)
- ├── main.py               # Código principal del proyecto
- ├── README.md             # Documentación del proyecto
+deep-learning/
+├── resources/ # Recursos estáticos y multimedia
+│ └── don_quijote_generativo.png
+├── src/ # Código fuente del proyecto
+│ └── charrnn2.py # Implementación principal del modelo
+├── .gitignore # Archivo para ignorar archivos no deseados en Git
+├── README.md # Documentación del proyecto
   ```
 ## Uso
 1. Clonar el Repositorio
