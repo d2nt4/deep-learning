@@ -2,6 +2,10 @@
 
 Este proyecto implementa un modelo de red neuronal recurrente (RNN) para generar texto carácter a carácter. Se basa en el libro **Don Quijote de la Mancha** como conjunto de datos. El objetivo es entrenar una RNN que pueda generar texto de estilo similar al del dataset.
 
+<div align="center">
+<img src="resources/don_quijote_generativo.png" alt="Don Quijote generando palabras" width="35%">
+</div>
+
 ## Características
 
 - Uso de **PyTorch** para definir y entrenar el modelo RNN.
