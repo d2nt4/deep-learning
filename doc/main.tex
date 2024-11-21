@@ -125,7 +125,7 @@ Este enfoque no solo pone a prueba la capacidad del modelo para capturar depende
 
 \subsection{Justificación del uso de RNN en generación de texto}
 Las redes neuronales recurrentes (RNN) son un tipo de red neuronal que se utiliza comúnmente en tareas de procesamiento del lenguaje natural, como la generación de texto. Son capaces de modelar dependencias temporales en los datos, lo que las hace especialmente adecuadas para tareas en las que la secuencia de los datos es importante.
-En el caso de la generación de texto, estas son capaces de capturar la estructura y el estilo del texto original, lo que les permite generar texto coherente y similar al original. Por esta razón, las RNN son una elección natural para este tipo de tarea.
+En el caso de la generación de texto, estas son capaces de capturar la estructura y el estilo del texto original, lo que les permite generar texto coherente y similar al original. Por esta razón, las (RNN) son una elección natural para este tipo de tarea.
 
 \newpage
 
@@ -142,23 +142,86 @@ El Deep Learning se ha convertido en una herramienta poderosa para una amplia va
     \caption{Cronograma sobre el avance de la Inteligencia Artificial. \cite{tjk2024deep}}
 \end{figure}
 
-\newpage
-
 \subsubsection{Fundamentos del Deep Learning}
 
 \subsubsection{Aplicaciones del Deep Learning}
 Las aplicaciones del Deep Learning son variadas y abarcan campos como el procesamiento del lenguaje natural, la visión por computador, la generación de texto, la traducción automática, entre otros.
 
+\newpage
+
 \subsection{Redes Neuronales Recurrentes (RNN)}
 \subsubsection{¿Qué son las RNN?}
-Una red neuronal recurrente, o RNN, es una red neuronal \cite{ibm-nn} profunda entrenada con datos secuenciales o de series temporales para crear un modelo de machine learning \cite{ibm-ml} que pueda hacer predicciones secuenciales o conclusiones basadas en entradas secuenciales. \\
+Una red neuronal recurrente, o (RNN), es una red neuronal \cite{ibm-nn} profunda entrenada con datos secuenciales o de series temporales para crear un modelo de machine learning \cite{ibm-ml} que pueda hacer predicciones secuenciales o conclusiones basadas en entradas secuenciales. \\
 
-Una RNN podría utilizarse para predecir los niveles diarios de inundación basándose en los datos diarios anteriores sobre inundaciones, mareas y meteorología.
-Pero las RNN también se pueden utilizar para resolver problemas ordinales o temporales, como la traducción de idiomas, el procesamiento del lenguaje natural (PLN) \cite{ibm-pln}, el reconocimiento de voz \cite{ibm-sr} y el subtitulado de imágenes.
-Las RNN se incorporan a aplicaciones populares como Siri, búsqueda por voz y Google Translate.
+Una (RNN) podría utilizarse para predecir los niveles diarios de inundación basándose en los datos diarios anteriores sobre inundaciones, mareas y meteorología.
+Pero las (RNN) también se pueden utilizar para resolver problemas ordinales o temporales, como la traducción de idiomas, el procesamiento del lenguaje natural (PLN) \cite{ibm-pln}, el reconocimiento de voz \cite{ibm-sr} y el subtitulado de imágenes.
+Las (RNN) se incorporan a aplicaciones populares como Siri, búsqueda por voz y Google Translate.
 
-\subsubsection{Arquitectura de las RNN}
+\subsubsection{Funcionamiento de las RNN}
+Al igual que [las redes neuronales convolucionales CNN \cite{ibm-cnn}, las redes neuronales recurrentes utilizan datos de entrenamiento para aprender.
+Se distinguen por su ``memoria'', ya que toman la información de las entradas anteriores para influir en la entrada y la salida actuales.
+Aunque las redes neuronales profundas tradicionales asumen que las entradas y las salidas son independientes entre sí, la salida de los (RNN) depende de los elementos anteriores de la secuencia.
+Mientras que las redes neuronales profundas tradicionales asumen que las entradas y las salidas son independientes entre sí, la salida de las (RNN) depende de los elementos anteriores dentro de la secuencia. \\
+
+Tomemos un modismo, como el inglés ``feeling under the weather'', que se utiliza comúnmente cuando alguien está enfermo, para ayudarnos en la explicación de las (RNN).
+Para que el modismo tenga sentido, debe expresarse en ese orden específico.
+En consecuencia, las redes recurrentes deben tener en cuenta la posición de cada palabra en el modismo y utilizan esa información para predecir la siguiente palabra de la secuencia.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[scale=0.2]{secuencia.png}
+    \caption{Secuencia y pesos en una RNN.}
+\end{figure}
+
+Otra característica distintiva de las redes recurrentes es que comparten parámetros en cada capa de la red.
+Mientras que las redes feedforward tienen diferentes pesos en cada nodo, las redes neuronales recurrentes comparten el mismo parámetro de peso dentro de cada capa de la red.
+Dicho esto, estos pesos todavía se ajustan a través de los procesos de retropropagación y descenso de gradiente para facilitar el aprendizaje por refuerzo.
+
+\newpage
+
+Las redes neuronales recurrentes aprovechan los algoritmos de retropropagación a través del tiempo (BPTT, por sus siglas en inglés) para determinar los gradientes, lo que difiere ligeramente de la retropropagación tradicional, ya que es específica de los datos secuenciales.
+Los principios de la (BPTT) son los mismos que los de la retropropagación tradicional, en la que el modelo se entrena a sí mismo calculando los errores de su capa de salida a su capa de entrada.
+Estos cálculos nos permiten ajustar y ajustar los parámetros del modelo adecuadamente.
+(BPTT) difieren del enfoque tradicional en que estas suman errores en cada paso de tiempo mientras que las redes feedforward no necesitan sumar errores ya que no comparten parámetros a través de cada capa.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[scale=0.25]{capas.png}
+    \caption{Capas en una red neuronal.}
+\end{figure}
+
+Durante este proceso, las (RNN) tienden a enfrentarse a dos problemas, conocidos como gradientes de explosión y gradientes de desaparición.
+Estos problemas se definen por el tamaño del gradiente, que es la pendiente de la función de pérdida a lo largo de la curva de error.
+Cuando el gradiente es demasiado pequeño, sigue haciéndose más pequeño, actualizando los parámetros de peso hasta que se vuelven insignificantes, es decir, cuando eso ocurre, el algoritmo ya no está aprendiendo.
+La explosión de gradientes sucede cuando el gradiente es demasiado grande, lo que crea un modelo inestable.
+En este caso, los pesos del modelo crecerán demasiado y, finalmente, se representarán como \textit{NaN}.
+Una solución a estos problemas es reducir el número de capas ocultas de la red neuronal, lo que elimina parte de la complejidad de los modelos (RNN).
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[scale=0.25]{ffrn.png}
+    \caption{Feed-Forward Network vs Recurrent Network.}
+\end{figure}
+
+\newpage
+
 \subsubsection{Tipos de RNN: Vanilla, LSTM, GRU, Bidireccional}
+Las redes neuronales tradicionales tienen capas de entrada y salida independientes, lo que las hace inadecuadas para manejar datos secuenciales.
+Las Redes Neuronales Recurrentes (RNN) se introdujeron para almacenar los resultados de salidas previas en una memoria interna.
+Los cuatro tipos más comúnmente utilizados de Redes Neuronales Recurrentes son:
+
+\begin{itemize}
+    \item \textbf{One-To-One}: El tipo más simple de (RNN) es el One-to-One, que permite una sola entrada y una sola salida. Tiene tamaños de entrada y salida fijos, y actúa como una red neuronal estándar. Una de las aplicaciones del modelo One-to-One se encuentra en la clasificación de imágenes.
+\end{itemize}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[scale=0.25]{oto.jpeg}
+    \caption{One-To-One.}
+\end{figure}
+
+
+\newpage
 \subsubsection{Problemas de las RNN: Gradientes desvanecidos, Explosivos}
 
 \subsection{Generación de Texto}
@@ -225,6 +288,7 @@ Las RNN se incorporan a aplicaciones populares como Siri, búsqueda por voz y Go
 
 \newpage
 
+\section{Bibliografía}
 \nocite{*}
 \printbibliography
 
