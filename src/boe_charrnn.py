@@ -178,7 +178,7 @@ def predict(model, X):
 
 # Instanciar y entrenar el modelo
 model = CharRNN(input_size=tokenizer.n_characters)
-fit(model, dataloader, epochs=20)
+fit(model, dataloader, epochs=100)
 
 # Generación de texto
 X_new = "Articulo 2 "
