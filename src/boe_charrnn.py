@@ -1,13 +1,11 @@
 import string
+
+import numpy as np
 import torch
 import torch.nn as nn
-import torch.nn.functional as F
-import numpy as np
 from torch.utils.data import Dataset, DataLoader
-import wget
-import random
 from tqdm import tqdm
-import data
+import matplotlib.pyplot as plt
 
 # Leer el texto
 # Leemos el texto almacenado en el directorio data y lo almacenamos en una variable.
@@ -18,14 +16,14 @@ with open("lopd_2023.txt", "r", encoding="utf-8") as f:
 # Definimos los caracteres válidos que se utilizarán para la tokenización
 all_characters = string.printable + "ñÑáÁéÉíÍóÓúÚ¿¡"
 
-#-----------------------------------------------------------------------------------#
+# -----------------------------------------------------------------------------------#
 
 # Clase Tokenizer
 # Esta clase convierte texto en una secuencia de índices numéricos y viceversa.
 class Tokenizer():
     def __init__(self):
-        self.all_characters = all_characters # Conjunto de caracteres válidos
-        self.n_characters = len(self.all_characters) # Número de caracteres válidos
+        self.all_characters = all_characters  # Conjunto de caracteres válidos
+        self.n_characters = len(self.all_characters)  # Número de caracteres válidos
 
     def text_to_seq(self, string):
         # Convierte texto en una secuencia de índices numéricos según su posición en `all_characters`.
@@ -56,7 +54,7 @@ train_size = len(text_encoded) * 80 // 100
 train = text_encoded[:train_size]
 test = text_encoded[train_size:]
 
-#-----------------------------------------------------------------------------------#
+# -----------------------------------------------------------------------------------#
 
 # Función para generar ventanas de texto
 # Crea fragmentos de texto con longitud `window_size + 1` (último carácter como etiqueta).
@@ -73,7 +71,7 @@ def windows(text, window_size=100):
 train_text_encoded_windows = windows(train)
 test_text_encoded_windows = windows(test)
 
-#-----------------------------------------------------------------------------------#
+# -----------------------------------------------------------------------------------#
 
 # Dataset personalizado
 # Define cómo acceder a los datos en formato compatible con PyTorch.
@@ -90,7 +88,7 @@ class CharRNNDataset(Dataset):
         # Devuelve un ejemplo del dataset.
         if self.train:
             return torch.tensor(self.text[ix][:-1]), torch.tensor(self.text[ix][-1])  # Entrada y etiqueta
-        return torch.tensor(self.text[ix]) # Solo entrada
+        return torch.tensor(self.text[ix])  # Solo entrada
 
 # Creamos datasets para entrenamiento y validación
 dataset = {
@@ -104,35 +102,40 @@ dataloader = {
     'val': DataLoader(dataset['val'], batch_size=2048, shuffle=False, pin_memory=True),
 }
 
-#-----------------------------------------------------------------------------------#
+# -----------------------------------------------------------------------------------#
 
 # Modelo CharRNN
 # Define la arquitectura de la red neuronal recurrente.
 class CharRNN(nn.Module):
     def __init__(self, input_size, embedding_size=128, hidden_size=256, num_layers=2, dropout=0.2):
         super().__init__()
-        self.encoder = nn.Embedding(input_size, embedding_size) # Capa de embedding
-        self.rnn = nn.LSTM(input_size=embedding_size, hidden_size=hidden_size, num_layers=num_layers, dropout=dropout, batch_first=True) # Capa LSTM
-        self.fc = nn.Linear(hidden_size, input_size) #Capa totalmente conectada
+        self.encoder = nn.Embedding(input_size, embedding_size)  # Capa de embedding
+        self.rnn = nn.LSTM(input_size=embedding_size, hidden_size=hidden_size, num_layers=num_layers, dropout=dropout,
+                           batch_first=True)  # Capa LSTM
+        self.fc = nn.Linear(hidden_size, input_size)  # Capa totalmente conectada
 
     def forward(self, x):
-        x = self.encoder(x) # Codificar la entrada
-        x, h = self.rnn(x) # Pasar por la capa LSTM
-        y = self.fc(x[:, -1, :]) #Predecir el siguiente carácter
+        x = self.encoder(x)  # Codificar la entrada
+        x, h = self.rnn(x)  # Pasar por la capa LSTM
+        y = self.fc(x[:, -1, :])  # Predecir el siguiente carácter
         return y
 
-#-----------------------------------------------------------------------------------#
+# -----------------------------------------------------------------------------------#
 
 # Entrenamiento
 # Configuración del dispositivo (GPU o CPU)
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 # Función de entrenamiento
-def fit(model, dataloader, epochs=20):
-    model.to(device) # Mover modelo a GPU si está disponible
+def fit(model, dataloader, epochs=3):
+    model.to(device)  # Mover modelo a GPU si está disponible
     print(f"Modelo en dispositivo: {next(model.parameters()).device}")
-    optimizer = torch.optim.Adam(model.parameters(), lr=1e-3) # Optimizador
-    criterion = nn.CrossEntropyLoss() # Función de pérdida
+    optimizer = torch.optim.Adam(model.parameters(), lr=1e-3)  # Optimizador
+    criterion = nn.CrossEntropyLoss()  # Función de pérdida
+
+    # Listas para almacenar las pérdidas
+    train_losses = []
+    val_losses = []
 
     for epoch in range(1, epochs + 1):
         # Entrenamiento
@@ -141,16 +144,18 @@ def fit(model, dataloader, epochs=20):
         bar = tqdm(dataloader['train'])
         for batch in bar:
             X, y = batch
-            X, y = X.to(device), y.to(device) # Mover datos a GPU si está disponible
+            X, y = X.to(device), y.to(device)  # Mover datos a GPU si está disponible
 
-            optimizer.zero_grad() # Reiniciar gradientes
-            y_hat = model(X) # Predicción
-            loss = criterion(y_hat, y) # Calcular pérdida
-            loss.backward() # Retropropagación
-            optimizer.step() # Actualizar pesos
+            optimizer.zero_grad()  # Reiniciar gradientes
+            y_hat = model(X)  # Predicción
+            loss = criterion(y_hat, y)  # Calcular pérdida
+            loss.backward()  # Retropropagación
+            optimizer.step()  # Actualizar pesos
 
             train_loss.append(loss.item())
             bar.set_description(f"loss {np.mean(train_loss):.5f}")
+
+        train_losses.append(np.mean(train_loss))
 
         # Validación
         val_loss = []
@@ -159,34 +164,51 @@ def fit(model, dataloader, epochs=20):
         with torch.no_grad():
             for batch in bar:
                 X, y = batch
-                X, y = X.to(device), y.to(device) # Mover datos a GPU si está disponible
+                X, y = X.to(device), y.to(device)  # Mover datos a GPU si está disponible
                 y_hat = model(X)
                 loss = criterion(y_hat, y)
                 val_loss.append(loss.item())
                 bar.set_description(f"val_loss {np.mean(val_loss):.5f}")
+
+        # Guardar pérdida promedio de validación
+        val_losses.append(np.mean(val_loss))
+
         print(f"Epoch {epoch}/{epochs} loss {np.mean(train_loss):.5f} val_loss {np.mean(val_loss):.5f}")
 
-#-----------------------------------------------------------------------------------#
+# -----------------------------------------------------------------------------------#
+
+# Graficar de pérdidas
+    plt.figure(figsize=(10, 6))
+    plt.plot(range(1, epochs + 1), train_losses, label='Pérdida de Entrenamiento')
+    plt.plot(range(1, epochs + 1), val_losses, label='Pérdida de Validación')
+    plt.xlabel('Epoch')
+    plt.ylabel('Pérdida')
+    plt.title('Evolución de la Pérdida por Epochs')
+    plt.legend()
+    plt.grid(True)
+    plt.show()
+
+# -----------------------------------------------------------------------------------#
 
 # Predicción
 def predict(model, X):
     model.eval()
     with torch.no_grad():
-        X = torch.tensor(X).to(device) # Mover datos a GPU si está disponible
-        pred = model(X.unsqueeze(0)) # Agregar dimensión de batch
+        X = torch.tensor(X).to(device)  # Mover datos a GPU si está disponible
+        pred = model(X.unsqueeze(0))  # Agregar dimensión de batch
         return pred
 
 # Instanciar y entrenar el modelo
 model = CharRNN(input_size=tokenizer.n_characters)
-fit(model, dataloader, epochs=100)
+fit(model, dataloader, epochs=3)
 
 # Generación de texto
-X_new = "Articulo 2 "
+X_new = input("Ingrese texto para iniciar la generación: ")
 for i in range(3000):
-    X_new_encoded = tokenizer.text_to_seq(X_new[-100:]) # Codificar los últimos 100 caracteres
-    y_pred = predict(model, X_new_encoded) # Predecir el siguiente carácter
-    y_pred = y_pred.view(-1).div(1).exp() # Distribución de probabilidad
-    top_i = torch.multinomial(y_pred, 1)[0] # Seleccionar el carácter con mayor probabilidad
+    X_new_encoded = tokenizer.text_to_seq(X_new[-100:])  # Codificar los últimos 100 caracteres
+    y_pred = predict(model, X_new_encoded)  # Predecir el siguiente carácter
+    y_pred = y_pred.view(-1).div(1).exp()  # Distribución de probabilidad
+    top_i = torch.multinomial(y_pred, 1)[0]  # Seleccionar el carácter con mayor probabilidad
     predicted_char = tokenizer.all_characters[top_i]
     X_new += predicted_char
 
