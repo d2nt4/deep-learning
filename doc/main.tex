@@ -18,6 +18,7 @@
 \usepackage{adjustbox}
 \usepackage[backend=biber, style=numeric]{biblatex}
 \usepackage{bookmark}
+\usepackage[nottoc]{tocbibind}
 
 % Configuración de la bibliografía
 \addbibresource{references.bib}
@@ -123,18 +124,14 @@ Este enfoque no solo pone a prueba la capacidad del modelo para capturar depende
     \end{itemize}
 \end{itemize}
 
-\subsection{Justificación del uso de RNN en generación de texto}
-Las redes neuronales recurrentes (RNN) son un tipo de red neuronal que se utiliza comúnmente en tareas de procesamiento del lenguaje natural, como la generación de texto. Son capaces de modelar dependencias temporales en los datos, lo que las hace especialmente adecuadas para tareas en las que la secuencia de los datos es importante.
-En el caso de la generación de texto, estas son capaces de capturar la estructura y el estilo del texto original, lo que les permite generar texto coherente y similar al original. Por esta razón, las (RNN) son una elección natural para este tipo de tarea.
-
 \newpage
 
 \section{Marco Teórico}
 \subsection{Introducción al Deep Learning}
-El Deep Learning es una rama del aprendizaje automático que se basa en el uso de redes neuronales artificiales para modelar y aprender patrones en los datos.
-Las redes neuronales artificiales son modelos matemáticos inspirados en el funcionamiento del cerebro humano, que consisten en capas de neuronas interconectadas que se utilizan para procesar y aprender a partir de los datos. \\
+\subsubsection{¿Qué es el Deep Learning?}
+El deep learning es un subconjunto del machine learning \cite{ibm-ml} que utiliza redes neuronales \cite{ibm-nn} multicapa, llamadas redes neuronales profundas, para simular el complejo poder de toma de decisiones del cerebro humano. Algunas formas de deep learning impulsan la mayoría de las aplicaciones de inteligencia artificial \cite{ibm-ia} (IA) en nuestra vida actual. \\
 
-El Deep Learning se ha convertido en una herramienta poderosa para una amplia variedad de aplicaciones, incluido el procesamiento del lenguaje natural, la visión por computador y la generación de texto.
+La principal diferencia entre el deep learning y el machine learning es la estructura de la arquitectura de red neuronal subyacente. Los modelos tradicionales de machine learning \cite{ibm-ml-types} ``no profundos'' utilizan redes neuronales simples con una o dos capas computacionales. Los modelos de deep learning utilizan tres o más capas, pero normalmente cientos o miles de capas, para entrenar los modelos. \\
 
 \begin{figure}[H]
     \centering
@@ -142,10 +139,30 @@ El Deep Learning se ha convertido en una herramienta poderosa para una amplia va
     \caption{Cronograma sobre el avance de la Inteligencia Artificial. \cite{tjk2024deep}}
 \end{figure}
 
-\subsubsection{Fundamentos del Deep Learning}
+Mientras que los modelos de aprendizaje supervisado requieren datos de entrada estructurados y etiquetados para obtener resultados precisos, los modelos de deep learning pueden utilizar el aprendizaje no supervisado. Con el aprendizaje no supervisado, los modelos de deep learning pueden extraer las características, los rasgos y las relaciones que necesitan para obtener resultados precisos a partir de datos brutos y no estructurados. Además, estos modelos pueden incluso evaluar y refinar sus resultados para aumentar la precisión. \\
 
-\subsubsection{Aplicaciones del Deep Learning}
-Las aplicaciones del Deep Learning son variadas y abarcan campos como el procesamiento del lenguaje natural, la visión por computador, la generación de texto, la traducción automática, entre otros.
+\begin{figure}[H]
+    \centering
+    \includegraphics[scale=0.075]{mlvsdp.png}
+    \caption{Machine Learning vs Deep Learning.}
+\end{figure}
+
+El deep learning es un aspecto de la ciencia de datos que impulsa muchas aplicaciones y servicios que mejoran la automatización, realizando tareas analíticas y físicas sin intervención humana. Esto permite muchos productos y servicios cotidianos, como asistentes digitales, controles remotos de TV habilitados para voz, detección de fraudes con tarjetas de crédito, automóviles autónomos e IA generativa. \\
+
+\newpage
+
+\subsubsection{¿Cómo funciona el Deep Learning?}
+Las redes neuronales, o redes neuronales artificiales, intentan imitar el cerebro humano a través de una combinación de entradas de datos, ponderaciones y sesgos, todos actuando como neuronas de silicio. Estos elementos trabajan juntos para reconocer, clasificar y describir con precisión los objetos dentro de los datos. \\
+
+Las redes neuronales profundas se componen de varias capas de nodos interconectados, cada una de las cuales se basa en la capa anterior para refinar y optimizar la predicción o la categorización. Esta progresión de cálculos a través de la red se denomina propagación hacia adelante. Las capas de entrada y salida de una red neuronal profunda se denominan capas visibles . La capa de entrada es donde el modelo de deep learning ingiere los datos para su procesamiento, y la capa de salida es donde se realiza la predicción o clasificación final. \\
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[scale=0.3]{layers.png}
+    \caption{Red Neuronal.}
+\end{figure}
+
+El deep learning requiere una enorme cantidad de potencia informática. Las unidades de procesamiento gráfico (GPU) de alto rendimiento son ideales porque pueden manejar un gran volumen de cálculos en varios núcleos con memoria copiosa disponible. El cloud computing distribuida también podría resultar útil. Este nivel de potencia de cómputo es necesario para entrenar algoritmos profundos a través del deep learning. Sin embargo, gestionar varias GPU en las instalaciones puede generar una gran demanda de recursos internos y su escalamiento es increíblemente caro. Para los requisitos de software, la mayoría de las aplicaciones de deep learning están codificadas con uno de estos tres marcos de aprendizaje: JAX, PyTorch o TensorFlow. \\
 
 \newpage
 
@@ -205,7 +222,7 @@ Una solución a estos problemas es reducir el número de capas ocultas de la red
 
 \newpage
 
-\subsubsection{Tipos de RNN: Vanilla, LSTM, GRU, Bidireccional}
+\subsubsection{Tipos de RNN}
 Las redes neuronales tradicionales tienen capas de entrada y salida independientes, lo que las hace inadecuadas para manejar datos secuenciales.
 Las Redes Neuronales Recurrentes (RNN) se introdujeron para almacenar los resultados de salidas previas en una memoria interna.
 Los cuatro tipos más comúnmente utilizados de Redes Neuronales Recurrentes son:
@@ -234,13 +251,80 @@ Los cuatro tipos más comúnmente utilizados de Redes Neuronales Recurrentes son
 
 \begin{itemize}
     \item \textbf{Many-To-Many}: es un tipo de RNN que se utiliza para generar una secuencia de datos de salida a partir de una secuencia de unidades de entrada. Este tipo se divide en las siguientes dos subcategorías:
+    \begin{itemize}
+        \item \textbf{Equal-Size}: En este caso, el tamaño de las capas de entrada y salida es exactamente el mismo.
+    \end{itemize}
+    \begin{figure}[H]
+        \centering
+        \includegraphics[scale=0.25]{mteq.png}
+        \caption{Many-To-Many (Equal-Size).}
+    \end{figure}
+    \begin{itemize}
+        \item \textbf{Unequal-Size}: En este caso, las entradas y salidas tienen un número diferente de unidades. Su aplicación se encuentra en la \textit{traducción automática} (Machine Translation).
+    \end{itemize}
+    \begin{figure}[H]
+        \centering
+        \includegraphics[scale=0.25]{mtun.png}
+        \caption{Many-To-Many (Unequal-Size).}
+    \end{figure}
 \end{itemize}
 
+\subsection{Arquitecturas RNN variantes}
+\subsubsection{Redes neuronales recurrentes bidireccionales (BRNN)}
+Mientras que en las RNN unidireccionales sólo se pueden extraer de entradas anteriores para hacer predicciones sobre el estado actual, las RNN bidireccionales, o BRNN, extraen datos futuros para mejorar la precisión de los mismos. Volviendo al ejemplo de ``feeling under the weather'', un modelo basado en una BRNN puede predecir mejor que la segunda palabra de esa frase es ``under'' si sabe que la última palabra de la secuencia es ``weather''.
 
+\begin{figure}[H]
+    \centering
+    \includegraphics[scale=0.25]{brnn.png}
+    \caption{Red Neuronal Recurrente Bidireccional.}
+\end{figure}
 
 \newpage
-\subsubsection{Problemas de las RNN: Gradientes desvanecidos, Explosivos}
 
+\subsubsection{Memoria a corto y largo plazo (LSTM)}
+LSTM es una arquitectura RNN popular, que fue introducida por Sepp Hochreiter y Juergen Schmidhuber como una solución al problema del gradiente evanescente. En su artículo \cite{lstmpaper} trabajan para abordar el problema de las dependencias a largo plazo. Es decir, si el estado anterior que influye en la predicción actual no se encuentra en el pasado reciente, es posible que el modelo RNN no pueda predecir con exactitud el estado actual. \\
+
+Por ejemplo, supongamos que queremos predecir las palabras en cursiva que siguen: ``Alicia es alérgica a los frutos secos. No puede comer mantequilla de cacahuete''. El contexto de una alergia a los frutos secos puede ayudarnos a anticipar que los alimentos que no se pueden comer contienen frutos secos. Sin embargo, si ese contexto estuviera unas frases antes, dificultaría, o incluso imposibilitaría, que la RNN conectara la información. \\
+
+Para solucionarlo, las LSTM tienen ``celdas'' en las capas ocultas de la red neuronal, que tienen tres puertas: una puerta de entrada, una puerta de salida y una puerta de olvido. Estas puertas controlan el flujo de información que se necesita para predecir la salida en la red. Por ejemplo, si los pronombres de género, como ``ella'', se repitieron varias veces en oraciones anteriores, puede excluirlos del estado de la celda. \\
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[scale=0.3]{lstm.png}
+    \caption{Memoria a Corto y Largo Plazo.}
+\end{figure}
+
+\newpage
+
+\subsubsection{Unidades recurrentes bloqueadas (GRU)}
+Pueden darse escenarios en los que aprender únicamente de los datos inmediatamente anteriores en una secuencia sea insuficiente. Consideremos el caso de intentar predecir una frase basada en otra frase introducida mucho antes en un libro o artículo. En este caso, recordar tanto los datos inmediatamente precedentes como los anteriores resulta crucial. Una RNN, debido a su mecanismo de compartición de parámetros, utiliza los mismos pesos en cada paso de tiempo. Como resultado, la retropropagación puede hacer que el gradiente explote o se desvanezca, y la red neuronal no aprende mucho de los datos que están alejados de la posición actual. \\
+
+Las GRU utilizan dos puertas: la puerta de actualización (update gate) y la puerta de reinicio (reset gate). Básicamente, estas son dos vectores que deciden qué información debe pasarse a la salida. Lo especial de estas puertas es que pueden entrenarse para conservar información a largo plazo sin degradarla con el tiempo o para eliminar información irrelevante para la predicción.
+
+\begin{itemize}
+    \item \textbf{Puerta de actualización}: es responsable de determinar la cantidad de información previa que debe pasar al siguiente estado.
+    \item \textbf{Puerta de reinicio}: se usa para decir cuánta información del pasado debe ser ignorada por el modelo.
+\end{itemize}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[scale=0.3]{gru.png}
+    \caption{Unidades Recurrentes Bloqueadas.}
+\end{figure}
+
+\newpage
+
+\subsection{Desafíos de las RNN estándar}
+Entrenar una RNN, o cualquier red neuronal, se realiza definiendo una función de pérdida que mide el error o la desviación entre el valor predicho y la verdad fundamental (\textbf{ground truth}). Las características de entrada se procesan a través de múltiples capas ocultas que utilizan diferentes o las mismas funciones de activación, y se predice el resultado. La función de pérdida total se calcula, marcando así el final de la \textit{pasada hacia adelante} (\textbf{forward pass}). \\
+
+La segunda parte del entrenamiento es la \textit{pasada hacia} atrás (\textbf{backward pass}), donde se calculan las diversas derivadas. Este proceso se vuelve aún más complejo en las Redes Neuronales Recurrentes (RNN), ya que estas procesan datos secuenciales o dependientes del tiempo. El modelo debe retropropagar los gradientes no solo a través de todas las capas ocultas, sino también a través del tiempo. Por lo tanto, en cada paso de tiempo, tiene que sumar todas las contribuciones anteriores hasta el instante de tiempo actual. \\
+
+\begin{itemize}
+    \item \textbf{Gradientes Explosivos}: En algunos casos, los valores de los gradientes continúan aumentando hasta alcanzar el infinito de forma exponencialmente rápida. Esto provoca actualizaciones de pesos muy grandes y hace que el descenso de gradiente diverja, volviendo el proceso de entrenamiento extremadamente inestable. Este problema se conoce como el gradiente explosivo (exploding gradient).
+    \item \textbf{Gradientes desvanecidos}: En otros casos, a medida que la retropropagación avanza desde la capa de salida hacia la capa de entrada, el término del gradiente tiende a cero de forma exponencialmente rápida. Como resultado, los pesos de las capas iniciales o más profundas apenas cambian, lo que dificulta que el modelo aprenda dependencias de largo plazo. Esto provoca que el descenso de gradiente nunca converja al óptimo. Este problema se conoce como el gradiente desvanecido (vanishing gradient).
+\end{itemize}
+
+\newpage
 \subsection{Generación de Texto}
 \subsubsection{Definición del problema}
 \subsubsection{Flujo del modelo: tokenización, embeddings, RNN, decodificación}
@@ -278,6 +362,8 @@ Los cuatro tipos más comúnmente utilizados de Redes Neuronales Recurrentes son
 \subsubsection{Proceso de inferencia}
 \subsubsection{Ajuste de la temperatura para variar la creatividad del texto generado}
 \subsubsection{Ejemplos de texto generado}
+
+\addtocontents{toc}{\protect\newpage}
 
 \section{Resultados}
 \subsection{Pérdida de entrenamiento y validación (gráficos de convergencia)}
