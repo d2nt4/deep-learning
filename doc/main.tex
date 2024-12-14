@@ -19,9 +19,14 @@
 \usepackage[backend=biber, style=numeric]{biblatex}
 \usepackage{bookmark}
 \usepackage[nottoc]{tocbibind}
+\usepackage{caption}
+\usepackage{tcolorbox}
 
 % Configuración de la bibliografía
 \addbibresource{references.bib}
+
+% Configuración de los entornos de listados
+\captionsetup[listing]{labelformat=simple, labelsep=colon, name=\textbf{Código}}
 
 % Definición de nuevos comandos
 \newcommand{\mail}[2]{\href{mailto:#1}{#2}}
@@ -325,43 +330,121 @@ La segunda parte del entrenamiento es la \textit{pasada hacia} atrás (\textbf{b
 \end{itemize}
 
 \newpage
-\subsection{Generación de Texto}
-\subsubsection{Definición del problema}
-\subsubsection{Flujo del modelo: tokenización, embeddings, RNN, decodificación}
-\subsubsection{Métricas para evaluar el texto generado}
-
-\subsection{Comparación con otros enfoques}
-\subsubsection{RNN vs Transformers}
-
-\subsection{Ventajas y Desventajas de las RNN}
-\subsection{Problemas de las RNN}
-\subsection{Aplicaciones de las RNN}
-\subsubsection{Procesamiento del Lenguaje Natural (NLP)}
-\subsubsection{Series Temporales}
-\subsubsection{Reconocimiento de Voz}
-
-\newpage
 
 \section{Implementación Práctica}
 \subsection{Preparación de Datos}
+La preparación de datos es una etapa crítica en el desarrollo de modelos de aprendizaje automático. En este caso, el objetivo es transformar el texto de un archivo (\textit{lopd\_2023.txt}) en un formato que pueda ser interpretado y procesado por la red neuronal recurrente (RNN). A continuación, se detallan los pasos específicos de esta preparación.
+
 \subsubsection{Descarga y preprocesamiento del texto}
-\subsubsection{Tokenización y codificación}
-\subsubsection{Generación de ventanas (ventanas deslizantes)}
+El archivo de texto que contiene el dataset se encuentra almacenado localmente. Para garantizar una correcta lectura, se utiliza el módulo de Python \mintinline{python}{open} con codificación UTF-8, permitiendo que caracteres especiales como acentos y la "ñ" sean procesados correctamente.
 
-\subsection{Arquitectura del Modelo}
-\subsubsection{Detalles de la arquitectura \texttt{CharRNN}: embeddings, LSTM, capa de salida}
-\subsubsection{Hiperparámetros del modelo}
-\subsubsection{Visualización de la arquitectura (diagrama opcional)}
+\begin{listing}[H]
+\begin{minted}[frame=lines, linenos, breaklines, bgcolor=bgcolor]{python}
+    with open('lopd_2023.txt', 'r', encoding='utf-8') as file:
+        text = file.read()
+\end{minted}
+\caption{Lectura del archivo de texto.}
+\end{listing}
 
-\subsection{Entrenamiento}
-\subsubsection{Configuración del entrenamiento (batch size, epochs, optimizador)}
-\subsubsection{Función de pérdida y retropropagación}
-\subsubsection{Monitoreo de métricas (pérdida de entrenamiento y validación)}
+\begin{tcolorbox}[colback=yellow!10!white, colframe=orange!80!black, title=Punto clave]
+    La codificación \textbf{UTF-8} asegura que caracteres adicionales necesarios para el idioma español sean manejados adecuadamente.
+\end{tcolorbox}
 
-\subsection{Generación de Texto}
-\subsubsection{Proceso de inferencia}
-\subsubsection{Ajuste de la temperatura para variar la creatividad del texto generado}
-\subsubsection{Ejemplos de texto generado}
+\subsubsection{Definición del conjunto de caracteres válidos}
+El modelo solo procesará caracteres incluidos en un conjunto predefinido (\textit{all\_characters}). \\
+Este conjunto incluye:
+\begin{itemize}
+    \item Todos los caracteres estándar imprimibles en Python (\mintinline{python}{string.printable}), que incluyen:
+    \begin{itemize}
+        \item Dígitos (0-9).
+        \item Letras mayúsculas y minúsculas (A-Z, a-z).
+        \item Caracteres especiales (puntuación, espacios en blanco, etc.).
+    \end{itemize}
+    \item Caracteres específicos del idioma español (á, é, í, ó, ú, ñ) y sus variantes en mayúsculas.
+    \item  Signos de puntuación adicionales (¡, ¿).
+    \begin{listing}[H]
+    \begin{minted}[frame=lines, linenos, breaklines, bgcolor=bgcolor]{python}
+    import string
+
+    all_characters = string.printable + "ñÑáÁéÉíÍóÓúÚ¿¡"
+    \end{minted}
+    \caption{Definición del conjunto de caracteres válidos.}
+    \end{listing}
+    \item Tamaño del conjunto de caracteres (\textbf{n\_characters}):
+    \begin{itemize}
+        \item Determinado por el número de caracteres en \textit{all\_characters}.
+        \item Este valor será el tamaño de la entrada y salida del modelo.
+    \end{itemize}
+\end{itemize}
+
+\newpage
+
+\subsubsection{Tokezinación}
+Para que el texto sea interpretable por el modelo, debe ser convertido a una representación numérica. Esto se logra mediante la tokenización, utilizando la clase \mintinline{python}{Tokenizer}. \\
+
+\textbf{\large{Clase Tokenizer}} \\
+La clase realiza dos operaciones principales:
+\begin{itemize}
+    \item \textbf{text\_to\_seq}: Convierte texto a una secuencia de índices numéricos, donde cada carácter se reemplaza por su posición en \textit{all\_characters}. Los caracteres no presentes en \textit{all\_characters} son ignorados.
+    \item \textbf{seq\_to\_text}: Reconstruye texto a partir de una secuencia de índices numéricos, útil para interpretar las predicciones del modelo.
+\end{itemize}
+
+\begin{listing}[H]
+\begin{minted}[frame=lines, linenos, breaklines, bgcolor=bgcolor]{python}
+    class Tokenizer():
+        def __init__(self):
+            self.all_characters = all_characters
+            self.n_characters = len(self.all_characters)
+
+        def text_to_seq(self, string):
+            seq = []
+            for c in range(len(string)):
+                try:
+                    seq.append(self.all_characters.index(string[c]))
+                except:
+                    continue
+            return seq
+
+        def seq_to_text(self, seq):
+            text = ''
+            for c in range(len(seq)):
+                text += self.all_characters[seq[c]]
+            return text
+\end{minted}
+\caption{Clase Tokenizer.}
+\end{listing}
+
+\textbf{\large{Tokezinación del texto}} \\
+Se instancia un objeto \mintinline{python}{Tokenizer} y se transforma el texto en una secuencia de índices numéricos.
+
+\begin{listing}[H]
+\begin{minted}[frame=lines, linenos, breaklines, bgcolor=bgcolor]{python}
+    tokenizer = Tokenizer()
+    text_encoded = tokenizer.text_to_seq(text)
+\end{minted}
+\caption{Tokezinación del texto.}
+\end{listing}
+
+\newpage
+
+\subsection{División del Dataset}
+El texto tokenizado se divide en dos subconjuntos:
+\begin{itemize}
+    \item \textbf{Conjunto de entrenamiento}: 80\% del texto. Utilizado para ajustar los pesos del modelo.
+    \item \textbf{Conjunto de validación}: 20\% del texto. Usado para evaluar el modelo durante el entrenamiento y prevenir sobreajuste.
+\end{itemize}
+
+\begin{listing}[H]
+\begin{minted}[frame=lines, linenos, breaklines, bgcolor=bgcolor]{python}
+    train_size = len(text_encoded) * 80 // 100
+    train = text_encoded[:train_size]
+    test = text_encoded[train_size:]
+\end{minted}
+\caption{División del dataset en entrenamiento y validación.}
+\end{listing}
+
+\subsection{Generación de Ventanas}
+\subsection{Creación de Datasets}
 
 \addtocontents{toc}{\protect\newpage}
 
